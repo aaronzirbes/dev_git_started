@@ -108,6 +108,6 @@ function installHomebrew() {
 
         if [ "${install_homebrew}" == "Y" ]; then
             ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
-    fi
+        fi
     fi
 }
