@@ -1,0 +1,13 @@
+#!/bin/bash
+
+output=go
+
+cat src/main.sh > ${output}
+cat src/bloom-config.sh >> ${output}
+cat src/git-config.sh >> ${output}
+cat src/github-config.sh >> ${output}
+cat src/software.sh >> ${output}
+cat src/utils.sh >> ${output}
+echo "" >> ${output}
+echo "main" >> ${output}
+echo "" >> ${output}
