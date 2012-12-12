@@ -275,6 +275,7 @@ function signupGitHub() {
 }
 
 function setupGithubUsername() {
+
     if [ "${GITHUB_USERNAME}" == "" ]; then
         echo "You do not have your GitHub username set via the \$GITHUB_USERNAME environemnt variable."
         read -p "What is your GitHub username? [${GREEN}${USER}${RESET}]: " new_github_username
@@ -282,6 +283,9 @@ function setupGithubUsername() {
             new_github_username="${USER}"
         fi
 
+        if [ ! -f ~/.profile ]; then
+            touch ~/.profile
+        fi
         export GITHUB_USERNAME="${new_github_username}"
         if (grep -q 'GITHUB_USERNAME' ~/.profile); then
             echo "Updating your ${BLUE}GITHUB_USERNAME${RESET} environment variable in ${BLUE}~/.profile${RESET}"
@@ -471,6 +475,9 @@ function setupSandbox() {
             echo "The path '${RED}${new_bloom_git_sandbox}${RESET}' cannot be used as '${RED}${sandbox_dir}${RESET}' is not a folder."
         else
             export BLOOM_GIT_SANDBOX="${new_bloom_git_sandbox}"
+            if [ ! -f ~/.profile ]; then
+                touch ~/.profile
+            fi
             if (grep -q 'BLOOM_GIT_SANDBOX' ~/.profile); then
                 echo "Updating your ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable in ${BLUE}~/.profile${RESET}"
                 sed -i -e "s/.*BLOOM_GIT_SANDBOX=.*/export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'/" ~/.profile
