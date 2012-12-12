@@ -1,4 +1,77 @@
+########################################################################################
+########### Begin Common Configuration Options #########################################
+########################################################################################
+
+# These are all the bloom git repositories that engineering should have cloned locally
+git_repositories="
+    radiant_service_event
+    lib_service_client
+"
+#git_repositories="
+#    lib_common
+#    lib_domain
+#    webapp_bloomhealth
+#    webaoo_bhbo
+#    dev_scripts
+#    dev_config
+#    test_geb_page_objects
+#"
+
+# This is the repo used to ping GitHub and check if the connection is setup properly, so everyone should have read access.
+git_ping_repo="radiant_service_event"
+#git_ping_repo="lib_common"
+
+
+########################################################################################
+########### End Common Configuration Options ###########################################
+########################################################################################
+
 #################### BLOOM REPO SETUP ##########################
+github_base_api_url="https://api.github.com/"
+
+default_git_sandbox=${BITBUCKET_SANDBOX}
+if [ "${default_git_sandbox}" == "" ]; then default_git_sandbox="${HOME}/bloom"; fi
+
+github_password=""
+
+function setupSandbox() {
+
+    if [ "${BLOOM_GIT_SANDBOX}" == "" ]; then
+        echo "You do not have a location set for BLOOM_GIT_SANDBOX, the folder where all the bloom git repos will be checked out to."
+        read -p "What location would you like to use for your BLOOM_GIT_SANDBOX? [${GREEN}${default_git_sandbox}${RESET}]: " new_bloom_git_sandbox
+        if [ "${new_bloom_git_sandbox}" == "" ]; then
+            new_bloom_git_sandbox="${default_git_sandbox}"
+        fi
+
+        sandbox_dir=`dirname "${new_bloom_git_sandbox}"`
+
+        if [ ! -d "${sandbox_dir}" ]; then
+            echo "The path '${RED}${new_bloom_git_sandbox}${RESET}' cannot be used as '${RED}${sandbox_dir}${RESET}' is not a folder."
+        else
+            export BLOOM_GIT_SANDBOX="${new_bloom_git_sandbox}"
+            if [ ! -f ~/.profile ]; then
+                touch ~/.profile
+            fi
+            if (grep -q 'BLOOM_GIT_SANDBOX' ~/.profile); then
+                echo "Updating your ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable in ${BLUE}~/.profile${RESET}"
+                sed -i -e "s/.*BLOOM_GIT_SANDBOX=.*/export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'/" ~/.profile
+            else
+                echo "Adding the ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable to the end of ${BLUE}~/.profile${RESET}"
+                echo "export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'" >> ~/.profile
+            fi
+            howToReloadProfile
+        fi 
+    fi
+
+    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
+        echo "Creating folder '${BLUE}${BLOOM_GIT_SANDBOX}${RESET}'."
+        mkdir -p "${BLOOM_GIT_SANDBOX}"
+    fi
+    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
+        echo "The folder '${RED}${BLOOM_GIT_SANDBOX}${RESET}' cannot be found or created."
+        exit
+    fi
+}
 
 function verifyAllRepos() {
 

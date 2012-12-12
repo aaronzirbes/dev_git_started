@@ -1,4 +1,6 @@
 ######################## SOFTWARE INSTALLATION ######################
+homebrew_version=`brew --version 2> /dev/null`
+git_version=`git version 2> /dev/null`
 
 # This function will download GitHub Mac client
 function downloadGiHubMac() {
@@ -56,6 +58,48 @@ function installGitCore() {
 function installGitCoreLinux() {
     if [ "${git_version}" == "" ] && [ "${os_version}" == "Linux" ]; then
         sudo apt-get -y -y install git-core
+    fi
+}
+
+function installGitFlowMac() {
+    if [ "${git_version}" == "" ] && [ "${os_version}" == "Darwin" ]; then
+        if [ "${homebrew_version}" != "" ]; then
+            brew install git-flow
+        else
+            gitflow_install_url="https://github.com/nvie/gitflow/wiki/Mac-OS-X"
+            dl_url='https://github.com/downloads/timcharper/git_osx_installer/git-1.8.0.1-intel-universal-snow-leopard.dmg'
+            dl_file='git-mac-latest.dmg'
+            dl_location="${HOME}/Downloads/"
+            dl_path="${dl_location}${dl_file}"
+
+            if [ ! -d ${dl_location} ]; then
+                mkdir -p ${dl_location}
+            fi
+
+            if [ ! -f ${dl_path} ]; then
+                echo "Downloading git core."
+                curl -L ${dl_url} > ${dl_path} || rm -f ${dl_path}
+            fi
+
+            if [ -f ${dl_path} ]; then
+                echo "Mounting git core DMG..."
+                hdiutil attach ${dl_path}
+
+                git_installer=`ls -d /Volumes/Git*/*.pkg`
+                if [ "${git_installer}" != "" ]; then
+                    echo "${GREEN}Please follow the installer's on-screen instructions, and then re-run this script.${RESET}"
+                    echo ""
+                    open "${git_installer}"
+                else
+                    echo "Unable to find installer.  Please run Git Core installer and then re-run this script"
+                fi
+                echo "You will need to install git-flow ${RED}by hand${RESET} since you do not have ${WHITE}homebrew${RESET} installed."
+                open "${gitflow_install_url}"
+                echo ""
+            else
+                echo "Failed to download git core."
+            fi
+        fi
     fi
 }
 

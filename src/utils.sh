@@ -1,5 +1,19 @@
 ######################### UTILITIES #################################
 
+# Software discovery...
+os_version=`uname -s`
+
+# Colors
+RESET=$'\e[0m'
+RED=$'\e[1;31m'
+GREEN=$'\e[1;32m'
+YELLOW=$'\e[1;33m'
+BLUE=$'\e[1;34m'
+PURPLE=$'\e[1;35m'
+CYAN=$'\e[0;36m'
+GREY=$'\e[0;37m'
+WHITE=$'\e[1;37m'
+
 function bloomLogo() {
 
     echo "${YELLOW}MMM.                 MMMMMMM${RESET}"
@@ -44,43 +58,4 @@ function howToReloadProfile() {
     echo ""
     echo ". ~/.profile"
     echo ""
-}
-
-function setupSandbox() {
-
-    if [ "${BLOOM_GIT_SANDBOX}" == "" ]; then
-        echo "You do not have a location set for BLOOM_GIT_SANDBOX, the folder where all the bloom git repos will be checked out to."
-        read -p "What location would you like to use for your BLOOM_GIT_SANDBOX? [${GREEN}${default_git_sandbox}${RESET}]: " new_bloom_git_sandbox
-        if [ "${new_bloom_git_sandbox}" == "" ]; then
-            new_bloom_git_sandbox="${default_git_sandbox}"
-        fi
-
-        sandbox_dir=`dirname "${new_bloom_git_sandbox}"`
-
-        if [ ! -d "${sandbox_dir}" ]; then
-            echo "The path '${RED}${new_bloom_git_sandbox}${RESET}' cannot be used as '${RED}${sandbox_dir}${RESET}' is not a folder."
-        else
-            export BLOOM_GIT_SANDBOX="${new_bloom_git_sandbox}"
-            if [ ! -f ~/.profile ]; then
-                touch ~/.profile
-            fi
-            if (grep -q 'BLOOM_GIT_SANDBOX' ~/.profile); then
-                echo "Updating your ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable in ${BLUE}~/.profile${RESET}"
-                sed -i -e "s/.*BLOOM_GIT_SANDBOX=.*/export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'/" ~/.profile
-            else
-                echo "Adding the ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable to the end of ${BLUE}~/.profile${RESET}"
-                echo "export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'" >> ~/.profile
-            fi
-            howToReloadProfile
-        fi 
-    fi
-
-    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
-        echo "Creating folder '${BLUE}${BLOOM_GIT_SANDBOX}${RESET}'."
-        mkdir -p "${BLOOM_GIT_SANDBOX}"
-    fi
-    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
-        echo "The folder '${RED}${BLOOM_GIT_SANDBOX}${RESET}' cannot be found or created."
-        exit
-    fi
 }

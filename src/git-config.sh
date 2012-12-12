@@ -1,4 +1,13 @@
 ############################ GIT CONFIGURATION #######################
+ssh_public_key=`cat ~/.ssh/id_rsa.pub`
+
+git_name=`git config --global user.name 2> /dev/null`
+default_git_name=$git_name
+if [ "${default_git_name}" == "" ]; then default_git_name=`id -P azirbes | awk -F : '{print $8}'`; fi
+
+git_email=`git config --global user.email 2> /dev/null`
+default_git_email=$git_email
+if [ "${default_git_email}" == "" ]; then default_git_email="${USER}@bloomhealthco.com"; fi
 
 function configureGit() {
     if (( "${#git_name}" > 0 )) && (( "${#git_email}" > 0 )) && (( "${#ssh_public_key}" > 0 )); then
