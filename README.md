@@ -1,4 +1,4 @@
-Getting started with Git and GitHub as Bloomhealth
+Getting started with Git and GitHub at Bloomhealth
 ==================================================
 
 This little script will help you set up your local dev development using git, GitHub.
