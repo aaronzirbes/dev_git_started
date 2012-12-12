@@ -4,5 +4,5 @@ Getting started with Git and GitHub as Bloomhealth
 How to run this script
 ----------------------
 
-    curl -fsSkL raw.github.com/aaronzirbes/git-started/master/go | bash
+bash -c "$(curl -fsSkL raw.github.com/aaronzirbes/git-started/master/go | bash)"
 
