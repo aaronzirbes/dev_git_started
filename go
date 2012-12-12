@@ -8,12 +8,19 @@ git_email=`git config --global user.email 2> /dev/null`
 ssh_public_key=`cat ~/.ssh/id_rsa.pub`
 homebrew_version=`brew --version 2> /dev/null`
 
+# These are all the bloom git repositories that engineering should have cloned locally
+git_repositories="
+radiant_service_event
+"
 
 default_git_name=$git_name
 if [ "${default_git_name}" == "" ]; then default_git_name=`id -P azirbes | awk -F : '{print $8}'`; fi
 
 default_git_email=$git_email
 if [ "${default_git_email}" == "" ]; then default_git_email="${USER}@bloomhealthco.com"; fi
+
+default_git_sandbox=${BITBUCKET_SANDBOX}
+if [ "${default_git_sandbox}" == "" ]; then default_git_sandbox="${HOME}/bloom"; fi
 
 # Colors
 RESET=$'\e[0m'
@@ -25,6 +32,9 @@ PURPLE=$'\e[1;35m'
 CYAN=$'\e[0;36m'
 GREY=$'\e[0;37m'
 WHITE=$'\e[1;37m'
+
+github_username=""
+github_password=""
 
 
 # This function will download GitHub Mac client
@@ -113,6 +123,7 @@ function installGitCoreMac() {
         if [ "${homebrew_version}" != "" ]; then
             brew install git
         else
+            gitflow_install_url="https://github.com/nvie/gitflow/wiki/Mac-OS-X"
             dl_url='https://github.com/downloads/timcharper/git_osx_installer/git-1.8.0.1-intel-universal-snow-leopard.dmg'
             dl_file='git-mac-latest.dmg'
             dl_location="${HOME}/Downloads/"
@@ -133,11 +144,15 @@ function installGitCoreMac() {
 
                 git_installer=`ls -d /Volumes/Git*/*.pkg`
                 if [ "${git_installer}" != "" ]; then
-                    echo "Please follow the installer's on-screen instructions, and then re-run this script"
+                    echo "${GREEN}Please follow the installer's on-screen instructions, and then re-run this script.${RESET}"
+                    echo ""
                     open "${git_installer}"
                 else
                     echo "Unable to find installer.  Please run Git Core installer and then re-run this script"
                 fi
+                echo "You will need to install git-flow ${RED}by hand${RESET} since you do not have ${WHITE}homebrew${RESET} installed."
+                open "${gitflow_install_url}"
+                echo ""
             else
                 echo "Failed to download git core."
             fi
@@ -259,6 +274,58 @@ function bloomLogo() {
 }
 
 function setupSandbox() {
+
+    if [ "${BLOOM_GIT_SANDBOX}" == "" ]; then
+        echo "You do not have a location set for BLOOM_GIT_SANDBOX, the folder where all the bloom git repos will be checked out to."
+        read -p "What location would you like to use for your BLOOM_GIT_SANDBOX? [${GREEN}${default_git_sandbox}${RESET}]: " new_bloom_git_sandbox
+        if [ "${new_bloom_git_sandbox}" == "" ]; then
+            new_bloom_git_sandbox="${default_git_sandbox}"
+        fi
+
+        sandbox_dir=`dirname "${new_bloom_git_sandbox}"`
+
+        if [ ! -d "${sandbox_dir}" ]; then
+            echo "The path '${RED}${new_bloom_git_sandbox}${RESET}' cannot be used as '${RED}${sandbox_dir}${RESET}' is not a folder."
+        else
+            export BLOOM_GIT_SANDBOX="${new_bloom_git_sandbox}"
+            if (grep -q 'BLOOM_GIT_SANDBOX' ~/.profile); then
+                echo "Updating your ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable in ${BLUE}~/.profile${RESET}"
+                sed -i -e "s/.*BLOOM_GIT_SANDBOX=.*/export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'/" ~/.profile
+            else
+                echo "Adding the ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable to the end of ${BLUE}~/.profile${RESET}"
+                echo "export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'" >> ~/.profile
+            fi
+        fi 
+    fi
+
+    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
+        echo "Creating folder '${BLUE}${BLOOM_GIT_SANDBOX}${RESET}'."
+        mkdir -p "${BLOOM_GIT_SANDBOX}"
+    fi
+    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
+        echo "The folder '${RED}${BLOOM_GIT_SANDBOX}${RESET}' cannot be found or created."
+        exit
+    fi
+}
+
+function verifyAllRepos() {
+    for repo in ${git_repositories}; do
+        assertRepo ${repo}
+    done
+}
+
+function verifyRepo() {
+    repo_name=$1
+    repo_ssh_url="git@github.com:bloomhealth/radiant_service_event.git"
+
+}
+
+function forkRepo() {
+    echo "TODO"
+}
+
+function cloneRepo() {
+    echo "TODO"
 }
 
 function main() {
