@@ -21,6 +21,7 @@ function signupGitHub() {
 }
 
 function setupGithubUsername() {
+
     if [ "${GITHUB_USERNAME}" == "" ]; then
         echo "You do not have your GitHub username set via the \$GITHUB_USERNAME environemnt variable."
         read -p "What is your GitHub username? [${GREEN}${USER}${RESET}]: " new_github_username
@@ -28,6 +29,9 @@ function setupGithubUsername() {
             new_github_username="${USER}"
         fi
 
+        if [ ! -f ~/.profile ]; then
+            touch ~/.profile
+        fi
         export GITHUB_USERNAME="${new_github_username}"
         if (grep -q 'GITHUB_USERNAME' ~/.profile); then
             echo "Updating your ${BLUE}GITHUB_USERNAME${RESET} environment variable in ${BLUE}~/.profile${RESET}"
