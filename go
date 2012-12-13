@@ -1,47 +1,6 @@
 #!/bin/bash
 
-####################### GLOBAL ########################
-
-# Software discovery...
-os_version=`uname -s`
-git_version=`git version 2> /dev/null`
-git_name=`git config --global user.name 2> /dev/null`
-git_email=`git config --global user.email 2> /dev/null`
-ssh_public_key=`cat ~/.ssh/id_rsa.pub`
-homebrew_version=`brew --version 2> /dev/null`
-github_base_api_url="https://api.github.com/"
-
-# These are all the bloom git repositories that engineering should have cloned locally
-git_repositories="
-radiant_service_event
-lib_service_client
-"
-git_ping_repo="radiant_service_event"
-
-default_git_name=$git_name
-if [ "${default_git_name}" == "" ]; then default_git_name=`id -P azirbes | awk -F : '{print $8}'`; fi
-
-default_git_email=$git_email
-if [ "${default_git_email}" == "" ]; then default_git_email="${USER}@bloomhealthco.com"; fi
-
-default_git_sandbox=${BITBUCKET_SANDBOX}
-if [ "${default_git_sandbox}" == "" ]; then default_git_sandbox="${HOME}/bloom"; fi
-
-# Colors
-RESET=$'\e[0m'
-RED=$'\e[1;31m'
-GREEN=$'\e[1;32m'
-YELLOW=$'\e[1;33m'
-BLUE=$'\e[1;34m'
-PURPLE=$'\e[1;35m'
-CYAN=$'\e[0;36m'
-GREY=$'\e[0;37m'
-WHITE=$'\e[1;37m'
-
-github_password=""
-
 ############################# MAIN ###############################
-
 function main() {
     echo ""
     bloomLogo
@@ -53,7 +12,81 @@ function main() {
     setupSandbox
     verifyAllRepos
 }
+
+########################################################################################
+########### Begin Common Configuration Options #########################################
+########################################################################################
+
+# These are all the bloom git repositories that engineering should have cloned locally
+git_repositories="
+    radiant_service_event
+    lib_service_client
+"
+#git_repositories="
+#    lib_common
+#    lib_domain
+#    webapp_bloomhealth
+#    webaoo_bhbo
+#    dev_scripts
+#    dev_config
+#    test_geb_page_objects
+#"
+
+# This is the repo used to ping GitHub and check if the connection is setup properly, so everyone should have read access.
+git_ping_repo="radiant_service_event"
+#git_ping_repo="lib_common"
+
+
+########################################################################################
+########### End Common Configuration Options ###########################################
+########################################################################################
+
 #################### BLOOM REPO SETUP ##########################
+github_base_api_url="https://api.github.com/"
+
+default_git_sandbox=${BITBUCKET_SANDBOX}
+if [ "${default_git_sandbox}" == "" ]; then default_git_sandbox="${HOME}/bloom"; fi
+
+github_password=""
+
+function setupSandbox() {
+
+    if [ "${BLOOM_GIT_SANDBOX}" == "" ]; then
+        echo "You do not have a location set for BLOOM_GIT_SANDBOX, the folder where all the bloom git repos will be checked out to."
+        read -p "What location would you like to use for your BLOOM_GIT_SANDBOX? [${GREEN}${default_git_sandbox}${RESET}]: " new_bloom_git_sandbox
+        if [ "${new_bloom_git_sandbox}" == "" ]; then
+            new_bloom_git_sandbox="${default_git_sandbox}"
+        fi
+
+        sandbox_dir=`dirname "${new_bloom_git_sandbox}"`
+
+        if [ ! -d "${sandbox_dir}" ]; then
+            echo "The path '${RED}${new_bloom_git_sandbox}${RESET}' cannot be used as '${RED}${sandbox_dir}${RESET}' is not a folder."
+        else
+            export BLOOM_GIT_SANDBOX="${new_bloom_git_sandbox}"
+            if [ ! -f ~/.profile ]; then
+                touch ~/.profile
+            fi
+            if (grep -q 'BLOOM_GIT_SANDBOX' ~/.profile); then
+                echo "Updating your ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable in ${BLUE}~/.profile${RESET}"
+                sed -i -e "s/.*BLOOM_GIT_SANDBOX=.*/export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'/" ~/.profile
+            else
+                echo "Adding the ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable to the end of ${BLUE}~/.profile${RESET}"
+                echo "export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'" >> ~/.profile
+            fi
+            howToReloadProfile
+        fi 
+    fi
+
+    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
+        echo "Creating folder '${BLUE}${BLOOM_GIT_SANDBOX}${RESET}'."
+        mkdir -p "${BLOOM_GIT_SANDBOX}"
+    fi
+    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
+        echo "The folder '${RED}${BLOOM_GIT_SANDBOX}${RESET}' cannot be found or created."
+        exit
+    fi
+}
 
 function verifyAllRepos() {
 
@@ -187,6 +220,15 @@ function githubApi() {
 }
 
 ############################ GIT CONFIGURATION #######################
+ssh_public_key=`cat ~/.ssh/id_rsa.pub`
+
+git_name=`git config --global user.name 2> /dev/null`
+default_git_name=$git_name
+if [ "${default_git_name}" == "" ]; then default_git_name=`id -P azirbes | awk -F : '{print $8}'`; fi
+
+git_email=`git config --global user.email 2> /dev/null`
+default_git_email=$git_email
+if [ "${default_git_email}" == "" ]; then default_git_email="${USER}@bloomhealthco.com"; fi
 
 function configureGit() {
     if (( "${#git_name}" > 0 )) && (( "${#git_email}" > 0 )) && (( "${#ssh_public_key}" > 0 )); then
@@ -300,6 +342,8 @@ function setupGithubUsername() {
 }
 
 ######################## SOFTWARE INSTALLATION ######################
+homebrew_version=`brew --version 2> /dev/null`
+git_version=`git version 2> /dev/null`
 
 # This function will download GitHub Mac client
 function downloadGiHubMac() {
@@ -360,6 +404,48 @@ function installGitCoreLinux() {
     fi
 }
 
+function installGitFlowMac() {
+    if [ "${git_version}" == "" ] && [ "${os_version}" == "Darwin" ]; then
+        if [ "${homebrew_version}" != "" ]; then
+            brew install git-flow
+        else
+            gitflow_install_url="https://github.com/nvie/gitflow/wiki/Mac-OS-X"
+            dl_url='https://github.com/downloads/timcharper/git_osx_installer/git-1.8.0.1-intel-universal-snow-leopard.dmg'
+            dl_file='git-mac-latest.dmg'
+            dl_location="${HOME}/Downloads/"
+            dl_path="${dl_location}${dl_file}"
+
+            if [ ! -d ${dl_location} ]; then
+                mkdir -p ${dl_location}
+            fi
+
+            if [ ! -f ${dl_path} ]; then
+                echo "Downloading git core."
+                curl -L ${dl_url} > ${dl_path} || rm -f ${dl_path}
+            fi
+
+            if [ -f ${dl_path} ]; then
+                echo "Mounting git core DMG..."
+                hdiutil attach ${dl_path}
+
+                git_installer=`ls -d /Volumes/Git*/*.pkg`
+                if [ "${git_installer}" != "" ]; then
+                    echo "${GREEN}Please follow the installer's on-screen instructions, and then re-run this script.${RESET}"
+                    echo ""
+                    open "${git_installer}"
+                else
+                    echo "Unable to find installer.  Please run Git Core installer and then re-run this script"
+                fi
+                echo "You will need to install git-flow ${RED}by hand${RESET} since you do not have ${WHITE}homebrew${RESET} installed."
+                open "${gitflow_install_url}"
+                echo ""
+            else
+                echo "Failed to download git core."
+            fi
+        fi
+    fi
+}
+
 function installGitCoreMac() {
     if [ "${git_version}" == "" ] && [ "${os_version}" == "Darwin" ]; then
         if [ "${homebrew_version}" != "" ]; then
@@ -409,10 +495,24 @@ function installHomebrew() {
 
         if [ "${install_homebrew}" == "Y" ]; then
             ruby -e "$(curl -fsSkL raw.github.com/mxcl/homebrew/go)"
-    fi
+        fi
     fi
 }
 ######################### UTILITIES #################################
+
+# Software discovery...
+os_version=`uname -s`
+
+# Colors
+RESET=$'\e[0m'
+RED=$'\e[1;31m'
+GREEN=$'\e[1;32m'
+YELLOW=$'\e[1;33m'
+BLUE=$'\e[1;34m'
+PURPLE=$'\e[1;35m'
+CYAN=$'\e[0;36m'
+GREY=$'\e[0;37m'
+WHITE=$'\e[1;37m'
 
 function bloomLogo() {
 
@@ -458,45 +558,6 @@ function howToReloadProfile() {
     echo ""
     echo ". ~/.profile"
     echo ""
-}
-
-function setupSandbox() {
-
-    if [ "${BLOOM_GIT_SANDBOX}" == "" ]; then
-        echo "You do not have a location set for BLOOM_GIT_SANDBOX, the folder where all the bloom git repos will be checked out to."
-        read -p "What location would you like to use for your BLOOM_GIT_SANDBOX? [${GREEN}${default_git_sandbox}${RESET}]: " new_bloom_git_sandbox
-        if [ "${new_bloom_git_sandbox}" == "" ]; then
-            new_bloom_git_sandbox="${default_git_sandbox}"
-        fi
-
-        sandbox_dir=`dirname "${new_bloom_git_sandbox}"`
-
-        if [ ! -d "${sandbox_dir}" ]; then
-            echo "The path '${RED}${new_bloom_git_sandbox}${RESET}' cannot be used as '${RED}${sandbox_dir}${RESET}' is not a folder."
-        else
-            export BLOOM_GIT_SANDBOX="${new_bloom_git_sandbox}"
-            if [ ! -f ~/.profile ]; then
-                touch ~/.profile
-            fi
-            if (grep -q 'BLOOM_GIT_SANDBOX' ~/.profile); then
-                echo "Updating your ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable in ${BLUE}~/.profile${RESET}"
-                sed -i -e "s/.*BLOOM_GIT_SANDBOX=.*/export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'/" ~/.profile
-            else
-                echo "Adding the ${BLUE}BLOOM_GIT_SANDBOX${RESET} environment variable to the end of ${BLUE}~/.profile${RESET}"
-                echo "export BLOOM_GIT_SANDBOX='${BLOOM_GIT_SANDBOX}'" >> ~/.profile
-            fi
-            howToReloadProfile
-        fi 
-    fi
-
-    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
-        echo "Creating folder '${BLUE}${BLOOM_GIT_SANDBOX}${RESET}'."
-        mkdir -p "${BLOOM_GIT_SANDBOX}"
-    fi
-    if [ ! -d "${BLOOM_GIT_SANDBOX}" ]; then
-        echo "The folder '${RED}${BLOOM_GIT_SANDBOX}${RESET}' cannot be found or created."
-        exit
-    fi
 }
 
 main
