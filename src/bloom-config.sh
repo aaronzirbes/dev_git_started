@@ -4,22 +4,17 @@
 
 # These are all the bloom git repositories that engineering should have cloned locally
 git_repositories="
-    radiant_service_event
-    lib_service_client
+    lib_common
+    lib_domain
+    webapp_bloomhealth
+    webaoo_bhbo
+    dev_scripts
+    dev_config
+    test_geb_page_objects
 "
-#git_repositories="
-#    lib_common
-#    lib_domain
-#    webapp_bloomhealth
-#    webaoo_bhbo
-#    dev_scripts
-#    dev_config
-#    test_geb_page_objects
-#"
 
 # This is the repo used to ping GitHub and check if the connection is setup properly, so everyone should have read access.
-git_ping_repo="radiant_service_event"
-#git_ping_repo="lib_common"
+git_ping_repo="lib_common"
 
 
 ########################################################################################
