@@ -156,7 +156,8 @@ function verifyRepo() {
             found_git_repo=1
 
             # setting head to origin master
-            git remote set-head origin master
+            git fetch --all
+            git remote set-head origin master > /dev/null
         else
             echo "${WHITE}${repo_dir}${RED} is not a Git repository.  Renaming it to ${repo_dir}-GITBACKUP."
             mv "${repo_dir}" "${repo_dir}-GITBACKUP"
