@@ -139,6 +139,9 @@ function verifyRepo() {
                 echo "    git fetch -u origin master"
             fi
             found_git_repo=1
+
+            # setting head to origin master
+            git remote set-head origin master
         else
             echo "${WHITE}${repo_dir}${RED} is not a Git repository.  Renaming it to ${repo_dir}-GITBACKUP."
             mv "${repo_dir}" "${repo_dir}-GITBACKUP"
@@ -151,8 +154,8 @@ function verifyRepo() {
         mkdir -p "${repo_dir}"
         pushd "${repo_dir}" > /dev/null
         git init > /dev/null
-        git remote add origin ${repo_user_ssh_url}
-        git remote add upstream ${repo_bloom_ssh_url}
+        git remote add origin ${repo_user_ssh_url} > /dev/null
+        git remote add upstream ${repo_bloom_ssh_url} > /dev/null
         popd > /dev/null
     fi
 }
