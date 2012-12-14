@@ -22,7 +22,7 @@ git_repositories="
     lib_common
     lib_domain
     webapp_bloomhealth
-    webaoo_bhbo
+    webapp_bhbo
     dev_scripts
     dev_config
     test_geb_page_objects
