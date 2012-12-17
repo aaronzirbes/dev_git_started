@@ -256,19 +256,19 @@ function configureGit() {
         fi
     fi
 
-    if [ "${ssh_public_key}" == "" ]; then
+    if (( "${#ssh_public_key}" == 0 )); then
         configure_git='Y'
         echo "It appears you do not have an SSH private/public key pair."
 
         generate_key_pair=$(askYesNo "Do you wish to generate a SSH key pair")
 
         if [ "${generate_key_pair}" == "Y" ]; then
-            if [ "${git_email}" == ""]; then
+            if (( "${#git_email}" == 0 )); then
                 echo "You must configure Git before we can generate a SSH key pair"
                 exit
             else
                 echo "Generating SSH keypair..."
-                #ssh-keygen -t rsa -C "${git_email}"
+                ssh-keygen -t rsa -C "${git_email}"
             fi
         else
             echo "You should generated an SSH key pair for use with GitHub so you dont' have to enter your username and password every time."
